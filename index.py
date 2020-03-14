@@ -1,35 +1,28 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import pandas as pd
 from dash.dependencies import Input, Output
 
 # see https://community.plot.ly/t/nolayoutexception-on-deployment-of-multi-page-dash-app-example-code/12463/2?u=dcomfort
 from app import server
 from app import app
-from layouts import layout_global, layout_us, layout_ca, layout_index
-import callbacks
 
-from data import totals_by_day
+import plotly.express as px
 
-# see https://dash.plot.ly/external-resources to alter header, footer and favicon
-# app.index_string = '''
-# <!DOCTYPE html>
-# <html>
-#     <head>
-#         {%metas%}
-#         <title>COVID-19 Dashboard</title>
-#         {%favicon%}
-#         {%css%}
-#     </head>
-#     <body>
-#         {%app_entry%}
-#         <footer>
-#             {%config%}
-#             {%scripts%}
-#         </footer>
-#         <div>WAVES Lab, Earth Research Institute</div>
-#     </body>
-# </html>
-# '''
+from functions import get_time_series, get_daily_reports, get_date_list
+confirmed, deaths, recovered = get_time_series(local=True)
+daily_report_data, dates = get_daily_reports(local=True)
+
+date_list = get_date_list(dates)
+
+def make_country_labels(by_cases=False):
+    
+    if by_cases == False:
+        countries = sorted(confirmed['Country/Region'].drop_duplicates())
+    elif by_cases == True:
+        countries = list(confirmed.groupby('Country/Region').sum()[date_list[-1]].sort_values(ascending=False).index)
+
+    return [{'label': 'Global', 'value': 'Global'}] + [{'label': country, 'value': country} for country in countries]
 
 app.layout = html.Div([
     html.H1(children='COVID-19 Dashboard'),
@@ -37,54 +30,52 @@ app.layout = html.Div([
     html.Div(children='''
         Data from Johns Hopkins.
     '''),
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'y': totals_by_day['confirmed'], 'x': totals_by_day.index, 'type': 'bar', 'name': 'Confirmed'},
-                {'y': totals_by_day['deaths'], 'x': totals_by_day.index, 'type': 'bar', 'name': 'Deaths'},
-                {'y': totals_by_day['recovered'], 'x': totals_by_day.index, 'type': 'bar', 'name': 'Recovered'}
-            ],
-            'layout': {
-                'title': 'Global COVID-19 Cases'
-            }
-        }
-    )
+    dcc.Dropdown(
+        id='global-dropdown',
+        options=make_country_labels(by_cases=True),
+        value='Global'
+        ),
+    dcc.Graph(id='global-graph')
 ])
 
-# Update page
-# # # # # # # # #
-# @app.callback(Output('page-content', 'children'),
-#               [Input('url', 'pathname')])
-# def display_page(pathname):
-#     if pathname == '/global':
-#         return layout_global
-#     elif pathname == '/us':
-#         return layout_us
-#     elif pathname == '/california':
-#         return layout_ca
-#     elif pathname == '/':
-#     	return layout_index
-#     else:
-#         return noPage
+@app.callback(Output('global-graph', 'options'), [Input()])
 
-# # # # # # # # #
-# external_css = ["https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
-#                 "https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css",
-#                 "//fonts.googleapis.com/css?family=Raleway:400,300,600",
-#                 "https://codepen.io/bcd/pen/KQrXdb.css",
-#                 "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
-#                 "https://codepen.io/dmcomfort/pen/JzdzEZ.css"]
+@app.callback(Output('global-graph', 'figure'), [Input('global-dropdown', 'value')])
+def update_global_graph(selected_dropdown_value):
+    country = selected_dropdown_value
+    if country == None or country == 'Global':
+        df = pd.DataFrame(
+            data={
+                'confirmed': [confirmed[date].sum() for date in date_list],
+                'deaths': [deaths[date].sum() for date in date_list],
+                'recovered': [recovered[date].sum() for date in date_list]
+            }, index=date_list)
+    else:
+        df = pd.DataFrame(
+        data={
+            'recovered': [
+                recovered.loc[(recovered['Country/Region'] == country)][date].sum() for date in date_list
+            ],
+            'confirmed': [
+                confirmed.loc[(confirmed['Country/Region'] == country)][date].sum() for date in date_list
+            ],
+            'deaths': [
+                deaths.loc[(deaths['Country/Region'] == country)][date].sum() for date in date_list
+            ]
+        }, index=date_list)
 
-# for css in external_css:
-#     app.css.append_css({"external_url": css})
+    return {
+        'data': [
+            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
+            {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
+        ],
+        'layout': {
+            'title': '{country} COVID-19 Cases'.format(country=country),
+            'barmode': 'stack'
+        }
 
-# external_js = ["https://code.jquery.com/jquery-3.2.1.min.js",
-#                "https://codepen.io/bcd/pen/YaXojL.js"]
-
-# for js in external_js:
-#     app.scripts.append_script({"external_url": js})
-
+    }
 
 if __name__ == '__main__':
     app.run_server(debug=True)
