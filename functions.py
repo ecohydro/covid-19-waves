@@ -28,16 +28,24 @@ def get_time_series(local=True):
 	deaths = pd.read_csv( time_series_files['Deaths'])
 	recovered = pd.read_csv( time_series_files['Recovered'])
 
-	return confirmed, deaths, recovered
+	start_date = pd.to_datetime('01/22/2020')
+	end_date = pd.to_datetime('today')
+	dates = pd.date_range(start_date, end_date)
+	valid_dates = []
+	for date in dates:
+		if date.strftime('%-m/%-d/%y') in confirmed.columns:
+			valid_dates.append(date)
+
+	return confirmed, deaths, recovered, valid_dates
 
 def get_daily_reports(local=True):
-
 	start_date = pd.to_datetime('01/22/2020')
 	end_date = pd.to_datetime('today')
 	dates = pd.date_range(start_date, end_date)
 	daily_reports = {}
 		
 	if local == True:
+		print('Getting daily reports using local data')
 		for date in dates:
 			date_str = date.strftime('%m-%d-%Y')
 			file_name = 'data/' + date_str + '.csv'
@@ -46,6 +54,7 @@ def get_daily_reports(local=True):
 			except:
 				print("Failed to load {file}".format(file=file_name))
 	elif local == False:
+		print('Getting daily reports using on-line data')
 		daily_report_url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
 		for date in dates:
 			# File format: 'MM-DD-YYYY.csv'

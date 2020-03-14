@@ -1,13 +1,32 @@
 # -*- coding: utf-8 -*-
+import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import pandas as pd
 
-from functions import get_time_series, get_daily_reports
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
 
-time_series_data = get_time_series()
-daily_report_data = get_daily_reports()
+# Read Config Settings from .env file:
+from dotenv import load_dotenv
+load_dotenv()
+config = {}
+config['LOCAL'] = str2bool(os.getenv('LOCAL'))
+config['DEBUG'] = str2bool(os.getenv('DEBUG'))
+
+from functions import get_time_series, get_daily_reports, get_date_list
+
+confirmed, deaths, recovered, time_series_dates = get_time_series(local=config['LOCAL'])
+daily_report_data, daily_dates = get_daily_reports(local=config['LOCAL'])
+
+time_series_date_list = get_date_list(time_series_dates)
+daily_date_list = get_date_list(daily_dates)
+
+githublink = 'https://github.com/ecohydro/covid-19-waves'
+sourceurl = 'https://github.com/CSSEGISandData/COVID-19'
+
 
 external_stylesheets = [
 	"https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
@@ -23,6 +42,8 @@ external_scripts = [
 	"https://codepen.io/bcd/pen/YaXojL.js"
 ]
 
+
+
 app = dash.Dash(
 	__name__,
 	external_scripts=external_scripts,
@@ -33,60 +54,71 @@ server = app.server
 app.config.suppress_callback_exceptions = True
 
 
-# colors = {
-#     'background': '#111111',
-#     'text': '#7FDBFF'
-# }
+def make_country_labels(by_cases=False):
+    
+    if by_cases == False:
+        countries = sorted(confirmed['Country/Region'].drop_duplicates())
+    elif by_cases == True:
+        countries = list(confirmed.groupby('Country/Region').sum().iloc[:,-1].sort_values(ascending=False).index)
 
+    return [{'label': 'Global', 'value': 'Global'}] + [{'label': country, 'value': country} for country in countries]
 
-# app.layout = html.Div([
-#     dcc.Location(id='url', refresh=False),
-#     html.Div(id='page-content')
-# ])
+app.layout = html.Div([
+    html.H1(children='COVID-19 Dashboard'),
 
-# app.layout = html.Div(style={'backgroundColor': colors['background']},
-# 	children=[
-#     	html.H1(
-#     		children='COVID-19 Data Dashboard',
-#     		style={
-#          	   'textAlign': 'center',
-#             	'color': colors['text']
-#         	}
-#     	),
+    html.Div(children='''
+        Data from Johns Hopkins.
+    '''),
+    dcc.Dropdown(
+        id='global-dropdown',
+        options=make_country_labels(by_cases=True),
+        value='Global'
+        ),
+    dcc.Graph(id='global-graph'),
+    html.A('Code on Github', href=githublink),
+    html.Br(),
+    html.A('Data Source', href=sourceurl),
+])
 
-# 	    html.Div(
-# 	    	children='Graphing & plotting tools for visualizing COVID-19 data aggregated by the <a href=https://github.com/CSSEGISandData/COVID-19>CSSE</a> at Johns Hopkins University.',
-# 	    	style={
-# 	    		'textAlign': 'center',
-#         		'color': colors['text']
-#         	}
-#         ),
-# 	    html.Div(id='graph-input'),
-# 	    html.H1(id='graph-output')
+# @app.callback(Output('global-graph', 'options'), [Input()])
 
-# ])
+@app.callback(Output('global-graph', 'figure'), [Input('global-dropdown', 'value')])
+def update_global_graph(selected_dropdown_value):
+    country = selected_dropdown_value
+    if country == None or country == 'Global':
+        df = pd.DataFrame(
+            data={
+                'confirmed': [confirmed[date].sum() for date in time_series_date_list],
+                'deaths': [deaths[date].sum() for date in time_series_date_list],
+                'recovered': [recovered[date].sum() for date in time_series_date_list]
+            }, index=time_series_date_list)
+    else:
+        df = pd.DataFrame(
+        data={
+            'recovered': [
+                recovered.loc[(recovered['Country/Region'] == country)][date].sum() for date in time_series_date_list
+            ],
+            'confirmed': [
+                confirmed.loc[(confirmed['Country/Region'] == country)][date].sum() for date in time_series_date_list
+            ],
+            'deaths': [
+                deaths.loc[(deaths['Country/Region'] == country)][date].sum() for date in time_series_date_list
+            ]
+        }, index=time_series_date_list)
 
-# @app.callback(Output(component_id='graph-output', component_property='children'),
-# 			  [Input(component_id='graph-input', component_property='')])
-# def make_global_graph(df):
-# 	return dcc.Graph(
-#         	id='example-graph',
-#         	figure={
-#          	   'data': [
-#           	      {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
-#           	      {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
-#           	  	],
-#             	'layout': {
-#                 'plot_bgcolor': colors['background'],
-#                 'paper_bgcolor': colors['background'],
-#                 'font': {
-#                     'color': colors['text']
-#                 	}
-#         		}
-#     		}
-#     	)
+    return {
+        'data': [
+            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
+            {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
+        ],
+        'layout': {
+            'title': '{country} COVID-19 Cases'.format(country=country),
+            'barmode': 'stack'
+        }
 
+    }
 
+if __name__ == '__main__':
+    app.run_server(debug=config['DEBUG'])
 
-# if __name__ == '__main__':
-#     app.run_server(debug=True)
