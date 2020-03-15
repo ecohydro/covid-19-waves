@@ -137,7 +137,7 @@ def get_daily_reports(local=True):
 	valid_dates = [pd.to_datetime(date) for date in list(daily_reports.keys())]
 	return daily_reports, valid_dates
 
-def make_country_labels(by_cases=False):
+def make_country_labels(by_cases=True):
     from data import confirmed
     if by_cases == False:
         countries = sorted(confirmed['Country/Region'].drop_duplicates())
@@ -146,7 +146,7 @@ def make_country_labels(by_cases=False):
 
     return [{'label': 'Global', 'value': 'Global'}] + [{'label': country, 'value': country} for country in countries]
 
-def make_state_labels(by_cases=False):
+def make_state_labels(by_cases=True):
 	from data import us_confirmed
 	if by_cases == False:
 		states = sorted(us_confirmed['State'].drop_duplicates())
