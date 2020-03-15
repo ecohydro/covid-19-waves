@@ -1,7 +1,25 @@
 # Functions to extract growth parameters
 import pandas as pd
-from data import daily_report_data
+from data import daily_report_data, confirmed, deaths, recovered, time_series_date_list
 
+
+def make_data_global(country='Global'):
+    if country == None or country == 'Global':
+        df = pd.DataFrame(
+            data={
+                'confirmed': [confirmed[date].sum() for date in time_series_date_list],
+                'deaths': [deaths[date].sum() for date in time_series_date_list],
+                'recovered': [recovered[date].sum() for date in time_series_date_list]
+            }, index=time_series_date_list)
+    else:
+        df = pd.DataFrame(
+        data={
+            # These dictionaries need to include lists, not pd.Series!
+            'recovered': data_by_area(area=country, df=recovered).tolist(),
+            'confirmed': data_by_area(area=country, df=confirmed).tolist(),
+            'deaths': data_by_area(area=country, df=deaths).tolist()
+        }, index=time_series_date_list)
+    return df
 
 def data_by_area(area='US', col='Country/Region', df=None):
 	from data import time_series_date_list

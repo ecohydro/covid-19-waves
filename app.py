@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import dash
+import plotly as py
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
@@ -46,14 +47,29 @@ app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
     html.H1(children='COVID-19 Dashboard'),
-    dcc.Tabs(id="tabs-main", value='tab-1-main', children=[
-        dcc.Tab(label='Global', value='tab-1-main'),
-        dcc.Tab(label='United States', value='tab-2-main'),
+    dcc.Tabs(
+        id="tabs-main", value='tab-1-main', 
+        parent_className='custom-tabs',
+        className='custom-tabs-container',
+        children=[
+            dcc.Tab(
+                label='Global',
+                value='tab-1-main',
+                className='custom-tab',
+                selected_className='custom-tab--selected'),
+            dcc.Tab(
+                label='United States',
+                value='tab-2-main',
+                className='custom-tab',
+                selected_className='custom-tab--selected'
+                ),
     ]),
     html.Div(id='tabs-content-main'),
-    html.A('Code on Github', href=githublink),
-    html.Br(),
-    html.A('Data Source', href=sourceurl),
+    html.Div(children=[
+        html.A('Code on Github', href=githublink),
+        html.Br(),
+        html.A('Data Source', href=sourceurl)
+        ],style={'width':'80%','margin':'0 auto'})
 ])
 
 @app.callback(Output('tabs-content-main', 'children'),
@@ -66,34 +82,91 @@ def render_content(tab):
 
 
 # Gather functions for making graphs:
-from model import data_by_area, last_update
+from model import data_by_area, last_update, make_data_global
 
-# @app.callback(Output('global-model-graph', 'figure'), [Input('global-dropdown', 'value')])
-# def update_global_model_graph(selected_dropdown_value):
-#     country = selected_dropdown_value
-#     if country == None or country == 'Global':
-#         df = pd.DataFrame(
-#             )
+
+@app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])
+def update_combo_global_graph(country):
+    template='<br>%{x}:%{y}<br>'
+    df = make_data_global(country)
+    df_diff = df.diff()
+    fig = py.subplots.make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.1,
+        #horizontal_spacing=0.009,
+        subplot_titles=['Total Cases', 'Daily Cases']
+    )
+    # fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 10, 't': 10}
+    #fig['layout']['barmode'] = 'stack'
+    fig.append_trace(
+        {'x':df.index,'y':df['confirmed'],
+        'type':'scatter',
+        'hovertemplate':template,
+        'name':'Total Confirmed'},1,1)
+    fig.append_trace(
+        {'x':df.index,'y':df['recovered'],
+        'type':'scatter',
+        'hovertemplate':template,
+        'name':'Total Recovered'},1,1)
+    fig.append_trace(
+        {'x':df.index,'y':df['deaths'],
+        'type':'scatter',
+        'hovertemplate':template,
+        'name':'Total Deaths'},1,1)
+    fig.append_trace(
+        {'x':df.index,'y':df_diff['confirmed'],
+        'type':'bar',
+        'hovertemplate':template,
+        'name':'Daily Confirmed'},2,1)
+    fig.append_trace(
+        {'x':df.index,'y':df_diff['recovered'],
+        'type':'bar',
+        'hovertemplate':template,
+        'name':'Daily Recovered'},2,1)
+    fig.append_trace(
+        {'x':df.index,'y':df_diff['deaths'],
+        'type':'bar',
+        'hovertemplate':template,
+        'name':'Daily Deaths'},2,1)
+    fig.update_layout(
+        autosize=True,
+        #width=700,
+        height=700,
+        margin=dict(
+            l=50,
+            r=50,
+            b=100,
+            t=50,
+            pad=4
+        ),
+        paper_bgcolor="white",
+    )
+    return fig
+
+@app.callback(Output('global-daily-graph', 'figure'), [Input('global-dropdown', 'value')])
+def update_global_model_graph(selected_dropdown_value):
+     country = selected_dropdown_value
+     df = make_data_global(country)
+     df = df.diff()
+     return {
+        'data': [
+            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
+            {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
+        ],
+        'layout': {
+            'title': 'Daily {country} COVID-19 Cases, Last Updated {update}'.format(
+                country=country,
+                update=last_update(country).strftime("%B %d, %Y")),
+            #'margin':{'l': 40, 'b': 40, 't': 10, 'r': 10}
+        }
+    }
 
 @app.callback(Output('global-graph', 'figure'), [Input('global-dropdown', 'value')])
 def update_global_graph(selected_dropdown_value):
     country = selected_dropdown_value
-    if country == None or country == 'Global':
-        df = pd.DataFrame(
-            data={
-                'confirmed': [confirmed[date].sum() for date in time_series_date_list],
-                'deaths': [deaths[date].sum() for date in time_series_date_list],
-                'recovered': [recovered[date].sum() for date in time_series_date_list]
-            }, index=time_series_date_list)
-    else:
-        df = pd.DataFrame(
-        data={
-            # These dictionaries need to include lists, not pd.Series!
-            'recovered': data_by_area(area=country, df=recovered).tolist(),
-            'confirmed': data_by_area(area=country, df=confirmed).tolist(),
-            'deaths': data_by_area(area=country, df=deaths).tolist()
-        }, index=time_series_date_list)
-
+    df = make_data_global(country)
     return {
         'data': [
             {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
@@ -104,7 +177,8 @@ def update_global_graph(selected_dropdown_value):
             'title': '{country} COVID-19 Cases, Last Updated {update}'.format(
                 country=country,
                 update=last_update(country).strftime("%B %d, %Y")),
-            'barmode': 'stack'
+            'barmode': 'stack',
+            #'margin':{'l': 40, 'b': 40, 't': 10, 'r': 10}
         }
     }
 

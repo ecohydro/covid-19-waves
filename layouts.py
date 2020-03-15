@@ -5,27 +5,31 @@ import dash_table
 from data import country_labels, state_labels
 
 global_tab = html.Div(children=[
-    html.Div(children=[
-        'Select a Country'],style={'width':'80%','align':'right'}),
+    html.H3(children=[
+        'Select a Country'],style={'width':'30%','margin':'0 auto'}),
     html.Div(children=[
             dcc.Dropdown(
                 id='global-dropdown',
                 options=country_labels,
                 value='Global'
-            )],style={'width':'20%'}),
-    dcc.Graph(id='global-graph'),
-    dcc.Graph(id='global-model-graph')
+            )],style={'width':'30%', 'margin':'0 auto'}),
+    # html.Div(children=[dcc.Graph(id='global-graph')]),
+    # html.Div(children=[dcc.Graph(id='global-daily-graph')])
+    html.Div(
+    	children=[dcc.Graph(id='combo-graph')],
+    	style={'width':'80%','margin':'0 auto'}
+    )
     ])
 	
 
 
 US_tab = html.Div(children=[
-	html.Div(children=[
-        'Select a State'],style={'width':'80%','align':'right'}),
+	html.H3(children=[
+        'Select a State'],style={'width':'30%','margin':'0 auto'}),
     html.Div(children=[
             dcc.Dropdown(
                 id='us-dropdown',
                 options=state_labels,
                 value='National'
-            )],style={'width':'20%'}),
+            )],style={'width':'30%', 'margin':'0 auto'}),
     dcc.Graph(id='us-graph')])
