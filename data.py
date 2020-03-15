@@ -1,4 +1,7 @@
-from functions import get_time_series, get_daily_reports, get_date_list, list_of_states
+from functions import (
+	get_time_series, get_daily_reports, get_date_list, list_of_states
+	make_state_labels, make_country_labels
+	)
 from config import config
 import pandas as pd
 
@@ -41,3 +44,6 @@ us_deaths = deaths[(deaths['Country/Region'] == 'US')]
 us_deaths = get_states(us_deaths)
 us_recovered = recovered[(recovered['Country/Region'] == 'US')]
 us_recovered = get_states(us_recovered)
+
+state_labels = make_state_labels(us_confirmed)
+country_labels = make_country_labels(confirmed)
