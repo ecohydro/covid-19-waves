@@ -137,21 +137,18 @@ def get_daily_reports(local=True):
 	valid_dates = [pd.to_datetime(date) for date in list(daily_reports.keys())]
 	return daily_reports, valid_dates
 
-def make_country_labels(by_cases=True):
-    from data import confirmed
+def make_country_labels(by_cases=True, data=None):
     if by_cases == False:
-        countries = sorted(confirmed['Country/Region'].drop_duplicates())
+        countries = sorted(data['Country/Region'].drop_duplicates())
     elif by_cases == True:
-        countries = list(confirmed.groupby('Country/Region').sum().iloc[:,-1].sort_values(ascending=False).index)
+    	countries = list(data.groupby('Country/Region').sum().iloc[:,-2].sort_values(ascending=False).index)
 
     return [{'label': 'Global', 'value': 'Global'}] + [{'label': country, 'value': country} for country in countries]
 
-def make_state_labels(by_cases=True):
-	from data import us_confirmed
+def make_state_labels(by_cases=True, data=None):
 	if by_cases == False:
-		states = sorted(us_confirmed['State'].drop_duplicates())
+		states = sorted(data['State'].drop_duplicates())
 	elif by_cases == True:
-		states = list(us_confirmed.groupby('State').sum().iloc[:,-1].sort_values(ascending=False).index)
-
+		states = list(data.groupby('State').sum().iloc[:,-2].sort_values(ascending=False).index)
 	return [{'label': 'National', 'value': 'National'}] + [{'label': state, 'value': state} for state in states]
 

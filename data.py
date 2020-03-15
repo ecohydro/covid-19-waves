@@ -1,5 +1,5 @@
 from functions import (
-	get_time_series, get_daily_reports, get_date_list, list_of_states
+	get_time_series, get_daily_reports, get_date_list, list_of_states,
 	make_state_labels, make_country_labels
 	)
 from config import config
@@ -38,12 +38,12 @@ def get_states(df):
     df = df[cols[-2:] + cols[:-2]].copy()
     return df
 
-us_confirmed = confirmed[(confirmed['Country/Region'] == 'US')]
+us_confirmed = confirmed[(confirmed['Country/Region'] == 'US')].copy()
 us_confirmed = get_states(us_confirmed)
-us_deaths = deaths[(deaths['Country/Region'] == 'US')]
+us_deaths = deaths[(deaths['Country/Region'] == 'US')].copy()
 us_deaths = get_states(us_deaths)
-us_recovered = recovered[(recovered['Country/Region'] == 'US')]
+us_recovered = recovered[(recovered['Country/Region'] == 'US')].copy()
 us_recovered = get_states(us_recovered)
 
-state_labels = make_state_labels(us_confirmed)
-country_labels = make_country_labels(confirmed)
+state_labels = make_state_labels(data=us_confirmed)
+country_labels = make_country_labels(data=confirmed)
