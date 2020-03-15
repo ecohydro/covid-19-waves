@@ -41,33 +41,3 @@ us_deaths = deaths[(deaths['Country/Region'] == 'US')]
 us_deaths = get_states(us_deaths)
 us_recovered = recovered[(recovered['Country/Region'] == 'US')]
 us_recovered = get_states(us_recovered)
-
-# state_confirmed = us_confirmed[us_confirmed['Province/State'].isin(list_of_states)]
-# state_recovered = us_recovered[us_recovered['Province/State'].isin(list_of_states)]
-# state_deaths = us_deaths[us_deaths['Province/State'].isin(list_of_states)]
-
-# county_confirmed = us_confirmed[us_confirmed['Province/State'].str.contains(',')]
-# county_deaths = us_deaths[us_deaths['Province/State'].str.contains(',')]
-# county_recovered = us_recovered[us_recovered['Province/State'].str.contains(',')]
-
-# county_confirmed['County'], county_confirmed['State'] = county_confirmed['Province/State'].str.split(',',1).str
-# county_recovered['County'], county_recovered['State'] = county_recovered['Province/State'].str.split(',',1).str
-# county_deaths['County'], county_deaths['State'] = county_deaths['Province/State'].str.split(',',1).str
-
-# county_confirmed['County'] = county_confirmed['County'].str.strip()
-# county_confirmed['State'] = county_confirmed['State'].str.strip()
-# county_deaths['County'] = county_deaths['County'].str.strip()
-# county_deaths['State'] = county_deaths['State'].str.strip()
-# county_recovered['County'] = county_recovered['County'].str.strip()
-# county_recovered['State'] = county_recovered['State'].str.strip()
-
-# # Move the columns to the front:
-# cols = county_confirmed.columns.tolist()
-# county_confirmed = county_confirmed[cols[-2:] + cols[:-2]]
-# cols = county_recovered.columns.tolist()
-# county_recovered = county_recovered[cols[-2:] + cols[:-2]]
-# cols = county_deaths.columns.tolist()
-# county_deaths = county_deaths[cols[-2:] + cols[:-2]]
-
-
-# Let's create a State abbreviation column for county data

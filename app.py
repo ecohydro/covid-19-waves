@@ -67,9 +67,8 @@ def render_content(tab):
         return US_tab
 
 
-
-
-
+# Gather functions for making graphs:
+from model import data_by_area
 
 @app.callback(Output('global-graph', 'figure'), [Input('global-dropdown', 'value')])
 def update_global_graph(selected_dropdown_value):
@@ -84,15 +83,10 @@ def update_global_graph(selected_dropdown_value):
     else:
         df = pd.DataFrame(
         data={
-            'recovered': [
-                recovered.loc[(recovered['Country/Region'] == country)][date].sum() for date in time_series_date_list
-            ],
-            'confirmed': [
-                confirmed.loc[(confirmed['Country/Region'] == country)][date].sum() for date in time_series_date_list
-            ],
-            'deaths': [
-                deaths.loc[(deaths['Country/Region'] == country)][date].sum() for date in time_series_date_list
-            ]
+            # These dictionaries need to include lists, not pd.Series!
+            'recovered': data_by_area(area=country, df=recovered).tolist(),
+            'confirmed': data_by_area(area=country, df=confirmed).tolist(),
+            'deaths': data_by_area(area=country, df=deaths).tolist()
         }, index=time_series_date_list)
 
     return {
@@ -119,23 +113,14 @@ def update_us_graph(selected_dropdown_value):
                 'recovered': [us_recovered[date].sum() for date in time_series_date_list]
             }, index=time_series_date_list)
     else:
-        df_r = us_recovered
-        df_c = us_confirmed
-        df_d = us_deaths
-        column = 'State'
+        print(state)
         df = pd.DataFrame(
             data={
-            'recovered': [
-                df_r.loc[(df_r[column] == state)][date].sum() for date in time_series_date_list
-            ],
-            'confirmed': [
-                df_c.loc[(df_c[column] == state)][date].sum() for date in time_series_date_list
-            ],
-            'deaths': [
-                df_d.loc[(df_d[column] == state)][date].sum() for date in time_series_date_list
-            ]
+            'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
+            'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
+            'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
         }, index=time_series_date_list)
-
+        print(df)
 
     return {
         'data': [
@@ -149,9 +134,6 @@ def update_us_graph(selected_dropdown_value):
         }
     }
 #confirmed[(confirmed['Country/Region'] == 'US') & (confirmed['Province/State'] == 'Nebraska')]
-
-
-
 
 if __name__ == '__main__':
     app.run_server(debug=config['DEBUG'])
