@@ -103,7 +103,7 @@ def update_global_graph(selected_dropdown_value):
         'layout': {
             'title': '{country} COVID-19 Cases, Last Updated {update}'.format(
                 country=country,
-                update=last_update(country)),
+                update=last_update(country).strftime("%B %d, %Y")),
             'barmode': 'stack'
         }
     }
@@ -134,7 +134,9 @@ def update_us_graph(selected_dropdown_value):
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
         'layout': {
-            'title': '{state} COVID-19 Cases'.format(state=state),
+            'title': '{state} COVID-19 Cases, Last Updated {update}'.format(
+                state=state,
+                update=last_update(state, column='State').strftime("%B %d, %Y")),
             'barmode': 'stack'
         }
     }

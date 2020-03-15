@@ -23,7 +23,16 @@ def doubling_time(area='US', df=None):
 	pass
 
 
-def last_update(area='US'):
-	countries = daily_report_data.groupby('Country/Region')
-	
+def last_update(area='US', column='Country/Region'):
+	from data import daily_report_data
+	if area == 'Global':
+		most_recent = daily_report_data['Last Update'].max().to_pydatetime()
+	elif area == 'National':
+		most_recent = daily_report_data.groupby('Country/Region')['Last Update'].max()['US'].to_pydatetime()
+	else:
+		most_recent = daily_report_data.groupby(column)['Last Update'].max()[area].to_pydatetime()
+	return most_recent
+
+
+
 

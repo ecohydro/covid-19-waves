@@ -66,7 +66,6 @@ abbrev_us_state = dict(map(reversed, us_state_abbrev.items()))
 
 list_of_states=list(us_state_abbrev.keys()) + ['Diamond Princess','Grand Princess']
 
-
 def assign_state(state_value):
     from functions import us_state_abbrev, abbrev_us_state
     state_value = str(state_value)
@@ -98,11 +97,6 @@ def get_states(df):
 def get_date_list(dates):
 	return [date.strftime('%-m/%-d/%y') for date in dates]
 
-def parse_counties(df,col='Province/State'):
-	new1 = pd.DataFrame(df[col].apply(lambda x: us_state_abbrev.get(x, None)).copy()).rename(columns={col:'State'})
-	new2 = df[col].str.split(',', 1, expand=True).rename(columns={0:'County',1:'State'})
-	df = pd.concat([df, new1.reindex(df.index), new2.reindex(df.index)], axis=1).copy()
-	return df
 
 def get_time_series(local=True):
 
