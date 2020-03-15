@@ -40,6 +40,7 @@ app = dash.Dash(
     external_scripts=external_scripts,
     external_stylesheets=external_stylesheets)
 
+app.title = 'WAVES Lab COVID-19 Dashboard'
 server = app.server
 app.config.suppress_callback_exceptions = True
 
@@ -55,8 +56,6 @@ app.layout = html.Div([
     html.A('Data Source', href=sourceurl),
 ])
 
-
-
 @app.callback(Output('tabs-content-main', 'children'),
               [Input('tabs-main', 'value')])
 def render_content(tab):
@@ -67,7 +66,7 @@ def render_content(tab):
 
 
 # Gather functions for making graphs:
-from model import data_by_area
+from model import data_by_area, last_update
 
 # @app.callback(Output('global-model-graph', 'figure'), [Input('global-dropdown', 'value')])
 # def update_global_model_graph(selected_dropdown_value):
@@ -102,7 +101,9 @@ def update_global_graph(selected_dropdown_value):
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
         'layout': {
-            'title': '{country} COVID-19 Cases'.format(country=country),
+            'title': '{country} COVID-19 Cases, Last Updated {update}'.format(
+                country=country,
+                update=last_update(country)),
             'barmode': 'stack'
         }
     }

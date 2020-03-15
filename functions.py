@@ -66,6 +66,35 @@ abbrev_us_state = dict(map(reversed, us_state_abbrev.items()))
 
 list_of_states=list(us_state_abbrev.keys()) + ['Diamond Princess','Grand Princess']
 
+
+def assign_state(state_value):
+    from functions import us_state_abbrev, abbrev_us_state
+    state_value = str(state_value)
+    if state_value in list(us_state_abbrev.keys()):
+        # We have a State Name:
+        state = state_value
+        county = None
+    elif ','in state_value:
+        # We have a county, State Pair
+        county, state_abbrev = [x.strip() for x in state_value.split(',')]
+        state_abbrev = state_abbrev.replace('.','') # Watch out for D.C.!
+        state = abbrev_us_state.get(state_abbrev, None)
+    else:
+        # It's a cruise ship!
+        state = state_value
+        county = None
+    return county, state
+
+def get_states(df):
+    df['location'] = pd.DataFrame(df['Province/State'].apply(lambda x: assign_state(x)))
+    new_col_list = ['County','State']
+    for n,col in enumerate(new_col_list):
+        df[col] = df['location'].apply(lambda location: location[n])
+    df = df.drop('location',axis=1)
+    cols = df.columns.tolist()
+    df = df[cols[-2:] + cols[:-2]].copy()
+    return df
+
 def get_date_list(dates):
 	return [date.strftime('%-m/%-d/%y') for date in dates]
 

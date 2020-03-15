@@ -1,5 +1,7 @@
 # Functions to extract growth parameters
 import pandas as pd
+from data import daily_report_data
+
 
 def data_by_area(area='US', col='Country/Region', df=None):
 	from data import time_series_date_list
@@ -22,5 +24,6 @@ def doubling_time(area='US', df=None):
 
 
 def last_update(area='US'):
-	pass
+	countries = daily_report_data.groupby('Country/Region')
 	
+
