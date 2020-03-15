@@ -130,8 +130,9 @@ def get_daily_reports(local=True):
 			date_str = date.strftime('%m-%d-%Y')
 			file_name =date_str + '.csv'
 			url = daily_report_url + file_name
+			#print(url)
 			try:
-				df = pd.read_csv(file_name, header=0)
+				df = pd.read_csv(url, header=0)
 				df['Date'] = date_str
 				all_reports.append(df)
 			except:
