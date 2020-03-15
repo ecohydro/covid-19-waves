@@ -1,7 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-
+import dash_table
 from data import country_labels, state_labels
 
 global_tab = html.Div(children=[
@@ -13,7 +13,10 @@ global_tab = html.Div(children=[
                 options=country_labels,
                 value='Global'
             )],style={'width':'20%'}),
-    dcc.Graph(id='global-graph')])
+    dcc.Graph(id='global-graph'),
+    dcc.Graph(id='global-model-graph')
+    ])
+	
 
 
 US_tab = html.Div(children=[

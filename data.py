@@ -9,7 +9,7 @@ confirmed, deaths, recovered, time_series_dates = get_time_series(local=config['
 daily_report_data, daily_dates = get_daily_reports(local=config['LOCAL'])
 
 time_series_date_list = get_date_list(time_series_dates)
-daily_date_list = get_date_list(daily_dates)
+daily_date_list = daily_dates.tolist()
 
 def assign_state(state_value):
     from functions import us_state_abbrev, abbrev_us_state
@@ -21,7 +21,7 @@ def assign_state(state_value):
         # We have a county, State Pair
         county, state_abbrev = [x.strip() for x in state_value.split(',')]
         state_abbrev = state_abbrev.replace('.','') # Watch out for D.C.!
-        state = abbrev_us_state[state_abbrev]
+        state = abbrev_us_state.get(state_abbrev, None)
     else:
         # It's a cruise ship!
         state = 'Cruise Ships'

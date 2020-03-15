@@ -38,8 +38,7 @@ external_scripts = [
 app = dash.Dash(
     __name__,
     external_scripts=external_scripts,
-    external_stylesheets=external_stylesheets,
-    url_base_pathname='/covid-19/')
+    external_stylesheets=external_stylesheets)
 
 server = app.server
 app.config.suppress_callback_exceptions = True
@@ -69,6 +68,13 @@ def render_content(tab):
 
 # Gather functions for making graphs:
 from model import data_by_area
+
+# @app.callback(Output('global-model-graph', 'figure'), [Input('global-dropdown', 'value')])
+# def update_global_model_graph(selected_dropdown_value):
+#     country = selected_dropdown_value
+#     if country == None or country == 'Global':
+#         df = pd.DataFrame(
+#             )
 
 @app.callback(Output('global-graph', 'figure'), [Input('global-dropdown', 'value')])
 def update_global_graph(selected_dropdown_value):
@@ -113,14 +119,12 @@ def update_us_graph(selected_dropdown_value):
                 'recovered': [us_recovered[date].sum() for date in time_series_date_list]
             }, index=time_series_date_list)
     else:
-        print(state)
         df = pd.DataFrame(
             data={
             'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
             'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
             'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
         }, index=time_series_date_list)
-        print(df)
 
     return {
         'data': [

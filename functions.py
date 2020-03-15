@@ -69,7 +69,6 @@ list_of_states=list(us_state_abbrev.keys()) + ['Diamond Princess','Grand Princes
 def get_date_list(dates):
 	return [date.strftime('%-m/%-d/%y') for date in dates]
 
-
 def parse_counties(df,col='Province/State'):
 	new1 = pd.DataFrame(df[col].apply(lambda x: us_state_abbrev.get(x, None)).copy()).rename(columns={col:'State'})
 	new2 = df[col].str.split(',', 1, expand=True).rename(columns={0:'County',1:'State'})
@@ -111,14 +110,16 @@ def get_daily_reports(local=True):
 	end_date = pd.to_datetime('today')
 	dates = pd.date_range(start_date, end_date)
 	daily_reports = {}
-		
+	all_reports = []
 	if local == True:
 		print('Getting daily reports using local data')
 		for date in dates:
 			date_str = date.strftime('%m-%d-%Y')
 			file_name = 'data/' + date_str + '.csv'
 			try:
-				daily_reports[date_str] = pd.read_csv(file_name)
+				df = pd.read_csv(file_name, header=0)
+				df['Date'] = date_str
+				all_reports.append(df)
 			except:
 				print("Failed to load {file}".format(file=file_name))
 	elif local == False:
@@ -130,11 +131,16 @@ def get_daily_reports(local=True):
 			file_name =date_str + '.csv'
 			url = daily_report_url + file_name
 			try:
-				daily_reports[date_str] = pd.read_csv(url)
+				df = pd.read_csv(file_name, header=0)
+				df['Date'] = date_str
+				all_reports.append(df)
 			except:
 				print("Failed to load {file}".format(file=file_name))
-
-	valid_dates = [pd.to_datetime(date) for date in list(daily_reports.keys())]
+	daily_reports = pd.concat(all_reports, axis=0, ignore_index=True)
+	daily_reports.Date = pd.to_datetime(daily_reports['Date'])
+	daily_reports['Last Update'] = pd.to_datetime(daily_reports['Last Update'])
+	valid_dates = df.Date.unique()
+#	valid_dates = [pd.to_datetime(date) for date in list(daily_reports.keys())]
 	return daily_reports, valid_dates
 
 def make_country_labels(by_cases=True, data=None):
