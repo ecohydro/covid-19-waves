@@ -32,4 +32,6 @@ US_tab = html.Div(children=[
                 options=state_labels,
                 value='National'
             )],style={'width':'30%', 'margin':'0 auto'}),
-    dcc.Graph(id='us-graph')])
+    html.Div(children=[dcc.Graph(id='us-graph')],style={'width':'80%','margin':'0 auto'}),
+    html.Div(children=[dcc.Graph(id='us-daily-graph')],style={'width':'80%','margin':'0 auto'})
+])

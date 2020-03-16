@@ -1,6 +1,11 @@
 # Functions to extract growth parameters
 import pandas as pd
-from data import daily_report_data, confirmed, deaths, recovered, time_series_date_list
+from data import (
+	daily_report_data, 
+	confirmed, deaths, recovered, 
+	us_confirmed, us_deaths, us_recovered,
+	time_series_date_list
+)
 
 
 def make_data_global(country='Global'):
@@ -18,6 +23,23 @@ def make_data_global(country='Global'):
             'recovered': data_by_area(area=country, df=recovered).tolist(),
             'confirmed': data_by_area(area=country, df=confirmed).tolist(),
             'deaths': data_by_area(area=country, df=deaths).tolist()
+        }, index=time_series_date_list)
+    return df
+
+def make_data_state(state='National'):
+    if state == None or state == 'National':
+        df = pd.DataFrame(
+            data={
+                'confirmed': [us_confirmed[date].sum() for date in time_series_date_list],
+                'deaths': [us_deaths[date].sum() for date in time_series_date_list],
+                'recovered': [us_recovered[date].sum() for date in time_series_date_list]
+            }, index=time_series_date_list)
+    else:
+        df = pd.DataFrame(
+            data={
+            'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
+            'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
+            'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
         }, index=time_series_date_list)
     return df
 

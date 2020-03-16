@@ -82,7 +82,7 @@ def render_content(tab):
 
 
 # Gather functions for making graphs:
-from model import data_by_area, last_update, make_data_global
+from model import data_by_area, last_update, make_data_global, make_data_state
 
 
 @app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])
@@ -145,7 +145,7 @@ def update_combo_global_graph(country):
     return fig
 
 @app.callback(Output('global-daily-graph', 'figure'), [Input('global-dropdown', 'value')])
-def update_global_model_graph(selected_dropdown_value):
+def update_global_daily_graph(selected_dropdown_value):
      country = selected_dropdown_value
      df = make_data_global(country)
      df = df.diff()
@@ -182,26 +182,36 @@ def update_global_graph(selected_dropdown_value):
         }
     }
 
-@app.callback(Output('us-graph', 'figure'), [Input('us-dropdown', 'value')])
-def update_us_graph(selected_dropdown_value):
-    from functions import us_state_abbrev
-    state = selected_dropdown_value
-    if state == None or state == 'National':
-        df = pd.DataFrame(
-            data={
-                'confirmed': [us_confirmed[date].sum() for date in time_series_date_list],
-                'deaths': [us_deaths[date].sum() for date in time_series_date_list],
-                'recovered': [us_recovered[date].sum() for date in time_series_date_list]
-            }, index=time_series_date_list)
-    else:
-        df = pd.DataFrame(
-            data={
-            'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
-            'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
-            'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
-        }, index=time_series_date_list)
+@app.callback(Output('us-daily-graph', 'figure'), [Input('us-dropdown', 'value')])
+def update_us_daily_graph(state):
+     df = make_data_state(state)
+     df = df.diff()
+     return {
+        'data': [
+            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
+            {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
+        ],
+        'layout': {
+            'title': 'Daily {state} COVID-19 Cases, Last Updated {update}'.format(
+                state=state,
+                update=last_update(state).strftime("%B %d, %Y")),
+            'height':350,
+            'margin':dict(
+            l=50,
+            r=50,
+            b=100,
+            t=50,
+            pad=4
+            ),
+            'paper_bgcolor':"white",
+        }
+    }
 
-    return {
+@app.callback(Output('us-graph', 'figure'), [Input('us-dropdown', 'value')])
+def update_us_graph(state):
+    df = make_data_state(state)
+    return {    
         'data': [
             {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
             {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
@@ -211,7 +221,16 @@ def update_us_graph(selected_dropdown_value):
             'title': '{state} COVID-19 Cases, Last Updated {update}'.format(
                 state=state,
                 update=last_update(state, column='State').strftime("%B %d, %Y")),
-            'barmode': 'stack'
+            'barmode': 'stack',
+            'height':350,
+            'margin':dict(
+            l=50,
+            r=50,
+            b=100,
+            t=50,
+            pad=4
+            ),
+            'paper_bgcolor':"white",
         }
     }
 #confirmed[(confirmed['Country/Region'] == 'US') & (confirmed['Province/State'] == 'Nebraska')]
