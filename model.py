@@ -26,7 +26,7 @@ def make_data_global(country='Global'):
         }, index=time_series_date_list)
     return df
 
-def make_data_state(state='National'):
+def make_data_state(state='National', limit=28):
     if state == None or state == 'National':
         df = pd.DataFrame(
             data={
@@ -41,7 +41,7 @@ def make_data_state(state='National'):
             'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
             'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
         }, index=time_series_date_list)
-    return df
+    return df.iloc[limit:,:]
 
 def data_by_area(area='US', col='Country/Region', df=None):
 	from data import time_series_date_list

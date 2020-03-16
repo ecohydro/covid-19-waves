@@ -13,12 +13,12 @@ global_tab = html.Div(children=[
                 options=country_labels,
                 value='Global'
             )],style={'width':'30%', 'margin':'0 auto'}),
-    # html.Div(children=[dcc.Graph(id='global-graph')]),
-    # html.Div(children=[dcc.Graph(id='global-daily-graph')])
-    html.Div(
-    	children=[dcc.Graph(id='combo-graph')],
-    	style={'width':'80%','margin':'0 auto'}
-    )
+    html.Div(children=[dcc.Graph(id='global-graph')],style={'width':'80%','margin':'0 auto'}),
+    html.Div(children=[dcc.Graph(id='global-daily-graph')],style={'width':'80%','margin':'0 auto'})
+    # html.Div(
+    # 	children=[dcc.Graph(id='combo-graph')],
+    # 	style={'width':'80%','margin':'0 auto'}
+    # )
     ])
 	
 

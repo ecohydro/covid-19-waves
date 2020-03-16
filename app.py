@@ -85,64 +85,64 @@ def render_content(tab):
 from model import data_by_area, last_update, make_data_global, make_data_state
 
 
-@app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])
-def update_combo_global_graph(country):
-    template='<br>%{x}:%{y}<br>'
-    df = make_data_global(country)
-    df_diff = df.diff()
-    fig = py.subplots.make_subplots(
-        rows=2, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.1,
-        #horizontal_spacing=0.009,
-        subplot_titles=['Total Cases', 'Daily Cases']
-    )
-    # fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 10, 't': 10}
-    #fig['layout']['barmode'] = 'stack'
-    fig.append_trace(
-        {'x':df.index,'y':df['confirmed'],
-        'type':'scatter',
-        'hovertemplate':template,
-        'name':'Total Confirmed'},1,1)
-    fig.append_trace(
-        {'x':df.index,'y':df['recovered'],
-        'type':'scatter',
-        'hovertemplate':template,
-        'name':'Total Recovered'},1,1)
-    fig.append_trace(
-        {'x':df.index,'y':df['deaths'],
-        'type':'scatter',
-        'hovertemplate':template,
-        'name':'Total Deaths'},1,1)
-    fig.append_trace(
-        {'x':df.index,'y':df_diff['confirmed'],
-        'type':'bar',
-        'hovertemplate':template,
-        'name':'Daily Confirmed'},2,1)
-    fig.append_trace(
-        {'x':df.index,'y':df_diff['recovered'],
-        'type':'bar',
-        'hovertemplate':template,
-        'name':'Daily Recovered'},2,1)
-    fig.append_trace(
-        {'x':df.index,'y':df_diff['deaths'],
-        'type':'bar',
-        'hovertemplate':template,
-        'name':'Daily Deaths'},2,1)
-    fig.update_layout(
-        autosize=True,
-        #width=700,
-        height=700,
-        margin=dict(
-            l=50,
-            r=50,
-            b=100,
-            t=50,
-            pad=4
-        ),
-        paper_bgcolor="white",
-    )
-    return fig
+# @app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])
+# def update_combo_global_graph(country):
+#     template='<br>%{x}:%{y}<br>'
+#     df = make_data_global(country)
+#     df_diff = df.diff()
+#     fig = py.subplots.make_subplots(
+#         rows=2, cols=1,
+#         shared_xaxes=True,
+#         vertical_spacing=0.1,
+#         #horizontal_spacing=0.009,
+#         subplot_titles=['Total Cases', 'Daily Cases']
+#     )
+#     # fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 10, 't': 10}
+#     #fig['layout']['barmode'] = 'stack'
+#     fig.append_trace(
+#         {'x':df.index,'y':df['confirmed'],
+#         'type':'scatter',
+#         'hovertemplate':template,
+#         'name':'Total Confirmed'},1,1)
+#     fig.append_trace(
+#         {'x':df.index,'y':df['recovered'],
+#         'type':'scatter',
+#         'hovertemplate':template,
+#         'name':'Total Recovered'},1,1)
+#     fig.append_trace(
+#         {'x':df.index,'y':df['deaths'],
+#         'type':'scatter',
+#         'hovertemplate':template,
+#         'name':'Total Deaths'},1,1)
+#     fig.append_trace(
+#         {'x':df.index,'y':df_diff['confirmed'],
+#         'type':'bar',
+#         'hovertemplate':template,
+#         'name':'Daily Confirmed'},2,1)
+#     fig.append_trace(
+#         {'x':df.index,'y':df_diff['recovered'],
+#         'type':'bar',
+#         'hovertemplate':template,
+#         'name':'Daily Recovered'},2,1)
+#     fig.append_trace(
+#         {'x':df.index,'y':df_diff['deaths'],
+#         'type':'bar',
+#         'hovertemplate':template,
+#         'name':'Daily Deaths'},2,1)
+#     fig.update_layout(
+#         autosize=True,
+#         #width=700,
+#         height=700,
+#         margin=dict(
+#             l=50,
+#             r=50,
+#             b=100,
+#             t=50,
+#             pad=4
+#         ),
+#         paper_bgcolor="white",
+#     )
+#     return fig
 
 @app.callback(Output('global-daily-graph', 'figure'), [Input('global-dropdown', 'value')])
 def update_global_daily_graph(selected_dropdown_value):
@@ -193,9 +193,8 @@ def update_us_daily_graph(state):
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
         'layout': {
-            'title': 'Daily {state} COVID-19 Cases, Last Updated {update}'.format(
-                state=state,
-                update=last_update(state).strftime("%B %d, %Y")),
+            'title': 'Daily {state} COVID-19 Cases'.format(
+                state=state),
             'height':350,
             'margin':dict(
             l=50,
