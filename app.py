@@ -4,16 +4,19 @@ import plotly as py
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import plotly.graph_objects as go
 import pandas as pd
 
 from config import config
 
-from layouts import global_tab, US_tab
+from layouts import global_tab, US_tab, pandemic_tab
 
 from data import (
     confirmed, deaths, recovered, time_series_dates,
     daily_report_data, daily_dates, time_series_date_list,
     daily_date_list, us_recovered, us_deaths, us_confirmed,
+    dates, date_strings, labels, data_df,
+    make_data_global, make_data_state
 #    county_recovered, county_deaths, county_confirmed,
 #    state_confirmed, state_recovered, state_deaths
     )
@@ -63,6 +66,11 @@ app.layout = html.Div([
                 className='custom-tab',
                 selected_className='custom-tab--selected'
                 ),
+            dcc.Tab(
+                label='Analysis',
+                value='tab-3-main',
+                className='custom-tab',
+                selected_className='custom-tab--selected')
     ]),
     html.Div(id='tabs-content-main'),
     html.Div(children=[
@@ -79,10 +87,111 @@ def render_content(tab):
         return global_tab
     if tab == 'tab-2-main':
         return US_tab
-
+    if tab == 'tab-3-main':
+        return pandemic_tab
 
 # Gather functions for making graphs:
-from model import data_by_area, last_update, make_data_global, make_data_state
+from model import (
+    data_by_area, last_update, ndays
+    )
+
+
+@app.callback(Output('updatemode-output-container', 'children'),
+              [Input('crossfilter-date--slider', 'value')])
+def display_value(value):
+    return 'Date: {} '.format(date_strings[value])
+
+
+@app.callback(
+    dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
+    [dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
+     dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
+     dash.dependencies.Input('crossfilter-xaxis-type', 'value'),
+     dash.dependencies.Input('crossfilter-yaxis-type', 'value'),
+     #dash.dependencies.Input('crossfilter-threshold--slider', 'value'),
+     dash.dependencies.Input('crossfilter-date--slider', 'value')])
+def update_scatter_graph(
+    xaxis_column_name,
+    yaxis_column_name,
+    xaxis_type, yaxis_type,
+    #threshold_value,
+    date_value):
+    date = date_strings[date_value]
+    dff = data_df[data_df['date'] == date]
+    return {
+        'data': [dict(
+            x=dff[dff['variable'] == xaxis_column_name]['value'],
+            y=dff[dff['variable'] == yaxis_column_name]['value'],
+            text=dff[dff['variable'] == yaxis_column_name]['country'],
+            customdata=dff[dff['variable'] == yaxis_column_name]['country'],
+            mode='markers',
+            marker={
+                'size':15,
+                'opacity':0.5,
+                'line': {'width': 0.5, 'color': 'white'}
+            }
+        )],
+        'layout': dict(
+            xaxis={
+                'title': labels[xaxis_column_name],
+                'type': 'linear' if xaxis_type == 'Linear' else 'log'
+            },
+            yaxis={
+                'title': labels[yaxis_column_name],
+                'type': 'linear' if yaxis_type == 'Linear' else 'log'
+            },
+            margin={'l': 40, 'b': 40, 't': 80, 'r': 40},
+            height=500,
+            hovermode='closest',
+            title='Global Data, {date}'.format(date=date_strings[date_value])
+        )
+    }
+
+
+def create_time_series(dff, axis_type, title):
+    return {
+        'data': [dict(
+            x=dff['date'],
+            y=dff['value'],
+            mode='lines+markers'
+        )],
+        'layout': {
+            'height': 250,
+            'margin': {'l': 40, 'b': 100, 'r': 10, 't': 10},
+            'annotations': [{
+                'x': 0, 'y': 0.85, 'xanchor': 'left', 'yanchor': 'bottom',
+                'xref': 'paper', 'yref': 'paper', 'showarrow': False,
+                'align': 'left', 'bgcolor': 'rgba(255, 255, 255, 0.5)',
+                'text': title
+            }],
+            'yaxis': {'type': 'linear' if axis_type == 'Linear' else 'log'},
+            'xaxis': {'showgrid': False}
+        }
+    }
+
+
+@app.callback(
+    dash.dependencies.Output('x-time-series', 'figure'),
+    [dash.dependencies.Input('crossfilter-indicator-scatter', 'hoverData'),
+     dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
+     dash.dependencies.Input('crossfilter-xaxis-type', 'value')])
+def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
+    country_name = hoverData['points'][0]['customdata']
+    dff = data_df[data_df['country'] == country_name]
+    dff = dff[dff['variable'] == xaxis_column_name]
+    title = '<b>{}</b><br>{}'.format(country_name, labels[xaxis_column_name])
+    return create_time_series(dff, axis_type, title)
+
+
+@app.callback(
+    dash.dependencies.Output('y-time-series', 'figure'),
+    [dash.dependencies.Input('crossfilter-indicator-scatter', 'hoverData'),
+     dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
+     dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
+def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
+    dff = data_df[data_df['country'] == hoverData['points'][0]['customdata']]
+    dff = dff[dff['variable'] == yaxis_column_name]
+    return create_time_series(dff, axis_type, labels[yaxis_column_name])
 
 
 # @app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])

@@ -2,46 +2,11 @@
 import pandas as pd
 from data import (
 	daily_report_data, 
-	confirmed, deaths, recovered, 
-	us_confirmed, us_deaths, us_recovered,
 	time_series_date_list
 )
 
-
-def make_data_global(country='Global'):
-    if country == None or country == 'Global':
-        df = pd.DataFrame(
-            data={
-                'confirmed': [confirmed[date].sum() for date in time_series_date_list],
-                'deaths': [deaths[date].sum() for date in time_series_date_list],
-                'recovered': [recovered[date].sum() for date in time_series_date_list]
-            }, index=time_series_date_list)
-    else:
-        df = pd.DataFrame(
-        data={
-            # These dictionaries need to include lists, not pd.Series!
-            'recovered': data_by_area(area=country, df=recovered).tolist(),
-            'confirmed': data_by_area(area=country, df=confirmed).tolist(),
-            'deaths': data_by_area(area=country, df=deaths).tolist()
-        }, index=time_series_date_list)
-    return df
-
-def make_data_state(state='National', limit=28):
-    if state == None or state == 'National':
-        df = pd.DataFrame(
-            data={
-                'confirmed': [us_confirmed[date].sum() for date in time_series_date_list],
-                'deaths': [us_deaths[date].sum() for date in time_series_date_list],
-                'recovered': [us_recovered[date].sum() for date in time_series_date_list]
-            }, index=time_series_date_list)
-    else:
-        df = pd.DataFrame(
-            data={
-            'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
-            'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
-            'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
-        }, index=time_series_date_list)
-    return df.iloc[limit:,:]
+#### MODEL PARAMETERS
+ndays = 10
 
 def data_by_area(area='US', col='Country/Region', df=None):
 	from data import time_series_date_list
@@ -59,8 +24,21 @@ def recent_updates(area='US', timedelta='12 hours', sort='Confirmed', df=None):
         (df['Country/Region'] == area) & (df['Last Update'] >= most_recent)].sort_values(
             sort, ascending=ascending.get(sort, False))
 
-def doubling_time(area='US', df=None):
-	pass
+def growth_rate(
+        df=None,
+        area=None,
+        col='Country/Region',
+        do_sort=False):
+    data = df[df.columns[2:]].copy()
+    data = data.sort_values(list(data.columns)[-1:], ascending=False)
+    rates = (data.diff(axis=1)/data)
+    if area:
+        rates = rates[col][area]
+    return rates
+
+def doubling_time(rates):
+    from math import log
+    return log(2)/rates
 
 
 def last_update(area='US', column='Country/Region'):
