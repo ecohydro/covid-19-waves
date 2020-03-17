@@ -6,3 +6,4 @@ Main goals are to re-learn muscle memory around plotly's Dash library, generate 
 
 I will try to document things in a series of notebooks, although it's a little hard to demonstrate working code for Dash in a notebook environment.
 
+Deployed [here](https://covid-19-waves.herokuapp.com)
