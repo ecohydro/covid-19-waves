@@ -3,33 +3,44 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_table
 from data import (
-    country_labels, state_labels, time_series_date_list, labels, dates, date_strings
+    country_labels, state_labels, time_series_date_list, dates, date_strings
     )
 from model import ndays
 import numpy as np
 
 pandemic_tab = html.Div([
     html.Div([
+        html.P('Variable sorting method:'),
+        html.Div([dcc.RadioItems(
+                id='charlie-sort',
+                options=[{'label': i, 'value': i} for i in ['Regular Sort', 'Charlie Sort']],
+                value='Regular Sort',
+                labelStyle={'display': 'inline-block', 'margin-right':10}
+            )],style={
+                'margin':'10 auto',
+                'borderBottom': 'thin lightgrey solid',
+                'backgroundColor': 'rgb(250, 250, 250)',
+                'padding': '5px 10px'}),
+        html.Br(),
         html.Div([
             dcc.Dropdown(
                 id='crossfilter-xaxis-column',
-                options=[{'label':labels[label], 'value':label} for label in list(labels.keys())],
-                value='confirmed'
+                # options=[{'label':labels[label], 'value':label} for label in list(labels.keys())],
+                value='confirmed',
             ),
             html.Br(),
             dcc.RadioItems(
                 id='crossfilter-xaxis-type',
                 options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
                 value='Log',
-                labelStyle={'display': 'inline-block'}
+                labelStyle={'display': 'inline-block', 'margin-right':10}
             )
         ],
         style={'width': '49%', 'display': 'inline-block'}),
-
         html.Div([
             dcc.Dropdown(
                 id='crossfilter-yaxis-column',
-                options=[{'label':labels[label], 'value':label} for label in labels],
+                # options=[{'label':labels[label], 'value':label} for label in labels],
                 value='deaths'
             ),
             html.Br(),
@@ -37,7 +48,7 @@ pandemic_tab = html.Div([
                 id='crossfilter-yaxis-type',
                 options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
                 value='Log',
-                labelStyle={'display': 'inline-block'}
+                labelStyle={'display': 'inline-block', 'margin-right':10}
             )
         ], style={'width': '49%', 'float': 'right', 'display': 'inline-block'})
     ], style={
@@ -61,7 +72,7 @@ pandemic_tab = html.Div([
         },
         updatemode='drag'
         ), style={'width': '80%', 'padding': '20px 20px 20px 20px', 'margin':'0 auto'}),
-    
+
     html.Div([
         dcc.Graph(
             id='crossfilter-indicator-scatter',

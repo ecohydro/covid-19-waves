@@ -15,7 +15,7 @@ from data import (
     confirmed, deaths, recovered, time_series_dates,
     daily_report_data, daily_dates, time_series_date_list,
     daily_date_list, us_recovered, us_deaths, us_confirmed,
-    dates, date_strings, labels, data_df, data_by_area,
+    dates, date_strings, label_dict, data_df, data_by_area,
     make_data_global, make_data_state
 #    county_recovered, county_deaths, county_confirmed,
 #    state_confirmed, state_recovered, state_deaths
@@ -101,6 +101,30 @@ from model import (
 def display_value(value):
     return 'Date: {} '.format(date_strings[value])
 
+@app.callback(
+    dash.dependencies.Output(
+        component_id='crossfilter-xaxis-column',
+        component_property='options'),
+    [dash.dependencies.Input('charlie-sort','value')])
+def update_xaxis_dropdown(sort):
+    from data import variable_dict
+    if sort == 'Charlie Sort':
+        return [{'label':label, 'value':variable,} for label, variable in sorted(variable_dict.items())]
+    else:
+        return [{'label':label, 'value':variable,} for label, variable in variable_dict.items()]
+
+@app.callback(
+    dash.dependencies.Output(
+        component_id='crossfilter-yaxis-column',
+        component_property='options'),
+    [dash.dependencies.Input('charlie-sort','value')])
+def update_yaxis_dropdown(sort):
+    from data import variable_dict
+    if sort == 'Charlie Sort':
+        return [{'label':label, 'value':variable,} for label, variable in sorted(variable_dict.items())]
+    else:
+        return [{'label':label, 'value':variable,} for label, variable in variable_dict.items()]
+
 
 @app.callback(
     dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
@@ -133,11 +157,11 @@ def update_scatter_graph(
         )],
         'layout': dict(
             xaxis={
-                'title': labels[xaxis_column_name],
+                'title': label_dict[xaxis_column_name],
                 'type': 'linear' if xaxis_type == 'Linear' else 'log'
             },
             yaxis={
-                'title': labels[yaxis_column_name],
+                'title': label_dict[yaxis_column_name],
                 'type': 'linear' if yaxis_type == 'Linear' else 'log'
             },
             margin={'l': 40, 'b': 40, 't': 80, 'r': 40},
@@ -179,7 +203,7 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
     country_name = hoverData['points'][0]['customdata']
     dff = data_df[data_df['country'] == country_name]
     dff = dff[dff['variable'] == xaxis_column_name]
-    title = '<b>{}</b><br>{}'.format(country_name, labels[xaxis_column_name])
+    title = '<b>{}</b><br>{}'.format(country_name, label_dict[xaxis_column_name])
     return create_time_series(dff, axis_type, title)
 
 
@@ -191,7 +215,7 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
 def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
     dff = data_df[data_df['country'] == hoverData['points'][0]['customdata']]
     dff = dff[dff['variable'] == yaxis_column_name]
-    return create_time_series(dff, axis_type, labels[yaxis_column_name])
+    return create_time_series(dff, axis_type, label_dict[yaxis_column_name])
 
 
 # @app.callback(Output('combo-graph', 'figure'), [Input('global-dropdown', 'value')])

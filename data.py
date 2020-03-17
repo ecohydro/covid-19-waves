@@ -128,22 +128,25 @@ for country in countries:
 data_df = pd.DataFrame.from_dict(data)
 
 
-variables = dict(
+label_dict = dict(
     confirmed='Total Confirmed Cases',
     deaths='Total Deaths',
     recovered='Total Recovered Cases',
     new_confirmed='New Confirmed Cases',
     new_deaths='New Deaths',
     new_recovered='New Recovered Cases',
-    case_rate='% Increase in Confirmed Cases',
-    death_rate='% Increase in Deaths',
+    case_rate='Percent Increase in Confirmed Cases',
+    death_rate='Percent Increase in Deaths',
     case_mortality='Cumulative Case Mortality Rate',
     case_recovery='Cumulative Case Recovery Rate',
     case_doubling='Doubling Time for Confirmed Cases',
     death_doubling='Doubling Time of Deaths'
 )
 
-labels = {variable: variables[variable] for variable in data_df.variable.unique()}
+variable_dict = {}
+for variable, label in label_dict.items():
+	variable_dict[label] = variable
+
 dates = np.array(
 	[datetime.datetime.strptime(date, '%m/%d/%y') for date in data_df.date.unique()])
 date_strings = [date.strftime('%-m/%-d/%y') for date in dates]
