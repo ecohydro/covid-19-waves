@@ -161,6 +161,12 @@ state_labels = make_state_labels(data=us_confirmed)
 country_labels = make_country_labels(data=confirmed)
 
 
+def data_by_area(area='US', col='Country/Region', df=None):
+	data =pd.Series(
+		[df.loc[(df[col] == area)][date].sum() for date in time_series_date_list],
+		)
+	return data
+
 def make_data_global(country='Global'):
     if country == None or country == 'Global':
         df = pd.DataFrame(

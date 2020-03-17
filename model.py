@@ -8,12 +8,6 @@ from data import (
 #### MODEL PARAMETERS
 ndays = 10
 
-def data_by_area(area='US', col='Country/Region', df=None):
-	from data import time_series_date_list
-	data =pd.Series(
-		[df.loc[(df[col] == area)][date].sum() for date in time_series_date_list],
-		)
-	return data
 
 def recent_updates(area='US', timedelta='12 hours', sort='Confirmed', df=None):
     ascending = {

@@ -15,7 +15,7 @@ from data import (
     confirmed, deaths, recovered, time_series_dates,
     daily_report_data, daily_dates, time_series_date_list,
     daily_date_list, us_recovered, us_deaths, us_confirmed,
-    dates, date_strings, labels, data_df,
+    dates, date_strings, labels, data_df, data_by_area,
     make_data_global, make_data_state
 #    county_recovered, county_deaths, county_confirmed,
 #    state_confirmed, state_recovered, state_deaths
@@ -92,7 +92,7 @@ def render_content(tab):
 
 # Gather functions for making graphs:
 from model import (
-    data_by_area, last_update, ndays
+    last_update, ndays
     )
 
 
