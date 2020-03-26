@@ -76,7 +76,7 @@ pandemic_tab = html.Div([
     html.Div([
         dcc.Graph(
             id='crossfilter-indicator-scatter',
-            hoverData={'points': [{'customdata': 'US'}]}
+            hoverData={'points': [{'customdata': 'US'}]},
         )
     ], style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
     html.Div([

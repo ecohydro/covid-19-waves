@@ -1,5 +1,5 @@
 from functions import (
-	get_time_series, get_daily_reports, get_date_list, list_of_states,
+	get_time_series, get_time_series_new, get_daily_reports, get_date_list, list_of_states,
 	make_state_labels, make_country_labels, get_states
 	)
 from config import config
@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import datetime
 
-confirmed, deaths, recovered, time_series_dates = get_time_series(local=config['LOCAL'])
+confirmed, deaths, time_series_dates = get_time_series_new(local=config['LOCAL'])
 daily_report_data, daily_dates = get_daily_reports(local=config['LOCAL'])
 
 daily_report_data = get_states(daily_report_data)
@@ -18,14 +18,14 @@ from model import doubling_time, growth_rate
 
 confirmed_totals = confirmed.groupby('Country/Region').sum()
 death_totals = deaths.groupby('Country/Region').sum()
-recovered_totals = recovered.groupby('Country/Region').sum()
-	
+# recovered_totals = recovered.groupby('Country/Region').sum()
+
 new_confirmed = confirmed_totals[confirmed_totals.columns[2:]].diff(axis=1)
-new_recovered = recovered_totals[recovered_totals.columns[2:]].diff(axis=1)
+# new_recovered = recovered_totals[recovered_totals.columns[2:]].diff(axis=1)
 new_deaths = death_totals[death_totals.columns[2:]].diff(axis=1)
 
 case_mortality = death_totals/confirmed_totals
-case_recovery = recovered_totals/confirmed_totals
+# case_recovery = recovered_totals/confirmed_totals
 
 countries = confirmed_totals.index
 
@@ -53,13 +53,13 @@ for country in countries:
                 variable='deaths',
                 value=death_totals.loc[country, date]
             ),
-            dict(
-                country=country,
-                state='Nation',
-                date=date,
-                variable='recovered',
-                value=recovered_totals.loc[country, date]
-            ),
+            # dict(
+            #     country=country,
+            #     state='Nation',
+            #     date=date,
+            #     variable='recovered',
+            #     value=recovered_totals.loc[country, date]
+            # ),
             dict(
                 country=country,
                 state='Nation',
@@ -74,13 +74,13 @@ for country in countries:
                 variable='new_deaths',
                 value=new_deaths.loc[country, date]
             ),
-            dict(
-                country=country,
-                state='Nation',
-                date=date,
-                variable='new_recovered',
-                value=new_recovered.loc[country, date]
-            ),
+            # dict(
+            #     country=country,
+            #     state='Nation',
+            #     date=date,
+            #     variable='new_recovered',
+            #     value=new_recovered.loc[country, date]
+            # ),
             dict(
                 country=country,
                 state='Nation',
@@ -102,13 +102,13 @@ for country in countries:
                 variable='case_mortality',
                 value=case_mortality.loc[country, date]
             ),
-            dict(
-                country=country,
-                state='Nation',
-                date=date,
-                variable='case_recovery',
-                value=case_recovery.loc[country, date]
-            ),
+            # dict(
+            #     country=country,
+            #     state='Nation',
+            #     date=date,
+            #     variable='case_recovery',
+            #     value=case_recovery.loc[country, date]
+            # ),
             dict(
                 country=country,
                 state='Nation',
@@ -131,14 +131,14 @@ data_df = pd.DataFrame.from_dict(data)
 label_dict = dict(
     confirmed='Total Confirmed Cases',
     deaths='Total Deaths',
-    recovered='Total Recovered Cases',
+    # recovered='Total Recovered Cases',
     new_confirmed='New Confirmed Cases',
     new_deaths='New Deaths',
-    new_recovered='New Recovered Cases',
+    # new_recovered='New Recovered Cases',
     case_rate='Percent Increase in Confirmed Cases',
     death_rate='Percent Increase in Deaths',
     case_mortality='Cumulative Case Mortality Rate',
-    case_recovery='Cumulative Case Recovery Rate',
+    # case_recovery='Cumulative Case Recovery Rate',
     case_doubling='Doubling Time for Confirmed Cases',
     death_doubling='Doubling Time of Deaths'
 )
@@ -157,8 +157,8 @@ us_confirmed = confirmed[(confirmed['Country/Region'] == 'US')].copy()
 us_confirmed = get_states(us_confirmed)
 us_deaths = deaths[(deaths['Country/Region'] == 'US')].copy()
 us_deaths = get_states(us_deaths)
-us_recovered = recovered[(recovered['Country/Region'] == 'US')].copy()
-us_recovered = get_states(us_recovered)
+# us_recovered = recovered[(recovered['Country/Region'] == 'US')].copy()
+# us_recovered = get_states(us_recovered)
 
 state_labels = make_state_labels(data=us_confirmed)
 country_labels = make_country_labels(data=confirmed)
@@ -176,13 +176,13 @@ def make_data_global(country='Global'):
             data={
                 'confirmed': [confirmed[date].sum() for date in time_series_date_list],
                 'deaths': [deaths[date].sum() for date in time_series_date_list],
-                'recovered': [recovered[date].sum() for date in time_series_date_list]
+                # 'recovered': [recovered[date].sum() for date in time_series_date_list]
             }, index=time_series_date_list)
     else:
         df = pd.DataFrame(
         data={
             # These dictionaries need to include lists, not pd.Series!
-            'recovered': data_by_area(area=country, df=recovered).tolist(),
+            # 'recovered': data_by_area(area=country, df=recovered).tolist(),
             'confirmed': data_by_area(area=country, df=confirmed).tolist(),
             'deaths': data_by_area(area=country, df=deaths).tolist()
         }, index=time_series_date_list)
@@ -194,12 +194,12 @@ def make_data_state(state='National', limit=28):
             data={
                 'confirmed': [us_confirmed[date].sum() for date in time_series_date_list],
                 'deaths': [us_deaths[date].sum() for date in time_series_date_list],
-                'recovered': [us_recovered[date].sum() for date in time_series_date_list]
+                # 'recovered': [us_recovered[date].sum() for date in time_series_date_list]
             }, index=time_series_date_list)
     else:
         df = pd.DataFrame(
             data={
-            'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
+            # 'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
             'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
             'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
         }, index=time_series_date_list)

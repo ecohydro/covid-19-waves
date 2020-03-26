@@ -12,9 +12,10 @@ from config import config
 from layouts import global_tab, US_tab, pandemic_tab
 
 from data import (
-    confirmed, deaths, recovered, time_series_dates,
-    daily_report_data, daily_dates, time_series_date_list,
-    daily_date_list, us_recovered, us_deaths, us_confirmed,
+    confirmed, deaths, #recovered,
+    time_series_dates, daily_report_data, daily_dates, time_series_date_list,
+    daily_date_list, #  us_recovered,
+    us_deaths, us_confirmed,
     dates, date_strings, label_dict, data_df, data_by_area,
     make_data_global, make_data_state
 #    county_recovered, county_deaths, county_confirmed,
@@ -284,7 +285,7 @@ def update_global_daily_graph(selected_dropdown_value):
      df = df.diff()
      return {
         'data': [
-            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            # {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
             {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
@@ -302,7 +303,7 @@ def update_global_graph(selected_dropdown_value):
     df = make_data_global(country)
     return {
         'data': [
-            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            # {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
             {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
@@ -321,7 +322,7 @@ def update_us_daily_graph(state):
      df = df.diff()
      return {
         'data': [
-            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            # {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
             {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],
@@ -345,7 +346,7 @@ def update_us_graph(state):
     df = make_data_state(state)
     return {    
         'data': [
-            {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
+            # {'y': df['recovered'], 'x': df.index, 'type': 'bar', 'name': 'Recovered'},
             {'y': df['confirmed'], 'x': df.index, 'type': 'bar', 'name': 'Confirmed'},
             {'y': df['deaths'], 'x': df.index, 'type': 'bar', 'name': 'Deaths'},
         ],

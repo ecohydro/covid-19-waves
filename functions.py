@@ -98,21 +98,36 @@ def get_date_list(dates):
 	return [date.strftime('%-m/%-d/%y') for date in dates]
 
 
+remote_time_series_files = {
+            'Confirmed':'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
+            'Deaths': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',
+            'Recovered': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv'
+        }
+
+
+local_time_series_files = {
+            'Confirmed':'data/time_series_19-covid-Confirmed.csv',
+            'Deaths': 'data/time_series_19-covid-Deaths.csv',
+            'Recovered': 'data/time_series_19-covid-Recovered.csv'
+        }
+
+remote_time_series_files_new = {
+            'Confirmed': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv',
+            'Deaths': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+}
+
+local_time_series_files_new = {
+            'Confirmed': 'data/time_series_covid19_confirmed_global.csv',
+            'Deaths': 'data/time_series_covid19_deaths_global.csv'
+}
+
 def get_time_series(local=True):
 
 	ts = {}
 	if local == False:
-		time_series_files = {
-	    	'Confirmed':'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
-	    	'Deaths': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',
-	    	'Recovered': 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv'
-		}
+		time_series_files = remote_time_series_files
 	else:
-		time_series_files = {
-	    	'Confirmed':'data/time_series_19-covid-Confirmed.csv',
-	    	'Deaths': 'data/time_series_19-covid-Deaths.csv',
-	    	'Recovered': 'data/time_series_19-covid-Recovered.csv'
-		}
+		time_series_files = local_time_series_files
 
 	confirmed = pd.read_csv( time_series_files['Confirmed'])
 	deaths = pd.read_csv( time_series_files['Deaths'])
@@ -127,6 +142,29 @@ def get_time_series(local=True):
 			valid_dates.append(date)
 
 	return confirmed, deaths, recovered, valid_dates
+
+
+def get_time_series_new(local=True):
+
+    ts = {}
+    if local == False:
+        time_series_files = remote_time_series_files
+    else:
+        time_series_files = local_time_series_files
+
+    confirmed = pd.read_csv( time_series_files['Confirmed'])
+    deaths = pd.read_csv( time_series_files['Deaths'])
+    # recovered = pd.read_csv( time_series_files['Recovered'])
+
+    start_date = pd.to_datetime('01/22/2020')
+    end_date = pd.to_datetime('today')
+    dates = pd.date_range(start_date, end_date)
+    valid_dates = []
+    for date in dates:
+        if date.strftime('%-m/%-d/%y') in confirmed.columns:
+            valid_dates.append(date)
+
+    return confirmed, deaths, valid_dates
 
 def get_daily_reports(local=True):
 	start_date = pd.to_datetime('01/22/2020')
