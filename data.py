@@ -1,6 +1,6 @@
 from functions import (
 	get_time_series, get_time_series_new, get_daily_reports, get_date_list, list_of_states,
-	make_state_labels, make_country_labels, get_states
+	make_state_labels, make_country_labels, get_states, get_county_reports, get_states_daily
 	)
 from config import config
 import pandas as pd
@@ -10,7 +10,10 @@ import datetime
 confirmed, deaths, time_series_dates = get_time_series_new(local=config['LOCAL'])
 daily_report_data, daily_dates = get_daily_reports(local=config['LOCAL'])
 
-daily_report_data = get_states(daily_report_data)
+county_data, county_dates = get_county_reports()
+
+
+daily_report_data = get_states_daily(daily_report_data)
 time_series_date_list = get_date_list(time_series_dates)
 daily_date_list = daily_dates.tolist()
 
@@ -152,16 +155,26 @@ dates = np.array(
 date_strings = [date.strftime('%-m/%-d/%y') for date in dates]
 
 
+old_confirmed, old_deaths, old_recovered, time_series_dates = get_time_series(local=config['LOCAL'])
 
-us_confirmed = confirmed[(confirmed['Country/Region'] == 'US')].copy()
+us_confirmed = old_confirmed[(old_confirmed['Country/Region'] == 'US')].copy()
 us_confirmed = get_states(us_confirmed)
-us_deaths = deaths[(deaths['Country/Region'] == 'US')].copy()
+
+us_confirmed = us_confirmed.groupby('State').sum()
+
+us_deaths = old_deaths[(old_deaths['Country/Region'] == 'US')].copy()
 us_deaths = get_states(us_deaths)
-# us_recovered = recovered[(recovered['Country/Region'] == 'US')].copy()
-# us_recovered = get_states(us_recovered)
+
+us_deaths = us_deaths.groupby('State').sum()
+
+
+from functions import add_new_state_data
+
+us_confirmed, us_deaths = add_new_state_data(us_confirmed, us_deaths, county_data)
 
 state_labels = make_state_labels(data=us_confirmed)
 country_labels = make_country_labels(data=confirmed)
+
 
 
 def data_by_area(area='US', col='Country/Region', df=None):
@@ -200,8 +213,8 @@ def make_data_state(state='National', limit=28):
         df = pd.DataFrame(
             data={
             # 'recovered': data_by_area(area=state, df=us_recovered, col='State').tolist(),
-            'confirmed': data_by_area(area=state, df=us_confirmed, col='State').tolist(),
-            'deaths': data_by_area(area=state, df=us_deaths, col='State').tolist()
+            'confirmed': [us_confirmed[us_confirmed.index == state][date].values[0] for date in time_series_date_list],
+            'deaths': [us_deaths[us_deaths.index == state][date].values[0] for date in time_series_date_list]
         }, index=time_series_date_list)
     return df.iloc[limit:,:]
 
